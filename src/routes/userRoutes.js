@@ -1,27 +1,21 @@
 const express = require("express");
-
 const route = express.Router();
+const verifyToken = require("../middlewares/authMiddleware");
+const authorizeRole = require("../middlewares/roleMiddleware");
 
 //Only admin can access this route
-route.get("/admin",(req,res)=>{
-    let token;
-    let authHeader = req.headers.authorization || req.header.authorization
-    if(authHeader && authHeader.startsWith("Bearer")){
-        token = authHeader.split(" ")[1];
-        if(!token){
-            return res.status(401).json({message: "No token, Authorization denied"})
-        }
-    }
-})
+route.get("/admin", verifyToken, authorizeRole("admin"), (req, res) => {
+  res.json({ message: "Admin pannel" });
+});
 
 //Both admin and manager can access this route
-route.get("/manager",(req,res)=>{
-    res.json({message:"Wellcome manager"})
-})
+route.get("/manager",verifyToken,authorizeRole("admin","manager"), (req, res) => {
+  res.json({ message: "Wellcome manager" });
+});
 
 //All can access this route
-route.get("/user",(req,res)=>{
-    res.json({message:"Wellcome user"})
-})
+route.get("/user",verifyToken,authorizeRole("admin","manager","user"), (req, res) => {
+  res.json({ message: "Wellcome user" })
+});
 
 module.exports = route;
